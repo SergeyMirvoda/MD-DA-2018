@@ -1,0 +1,16 @@
+---
+title: "CW_3"
+author: "Kanke Sergey"
+date: '11 октября 2018 г '
+output: html_document
+---
+```{r}
+#Загрузите данные о землятресениях
+anss <- readLines("https://raw.githubusercontent.com/SergeyMirvoda/MD-DA-2017/master/data/earthquakes_2011.html", warn=FALSE)
+#Выберите строки, которые содержат данные с помощью регулярных выражений и функции grep
+pattern <- "\\d{4}/?(\\d{2}/?){2} (\\d{2}:){2}\\d{2}\\.\\d{2},-?\\d+\\.\\d{4},-?\\d+\\.\\d{4},\\d+\\.\\d{2},\\d\\.\\d{2},\\w{2},\\d+(,\\d*){3}\\d\\.\\d{2},\\w+,\\d*"
+data<-c(anss[grep(pattern, anss)])
+#Проверьте что все строки (all.equal) в результирующем векторе подходят под шаблон. 
+all.equal(regmatches(anss, regexpr(pattern, anss)), data)
+```
+
