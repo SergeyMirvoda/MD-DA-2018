@@ -1,0 +1,127 @@
+---
+title: "LAB_2"
+author: "Kanke Sergey"
+date: '11 октября 2018 г '
+output: html_document
+---
+
+```{r}
+library(MASS)
+data(Cars93)
+#View(Cars93)
+#Задание 1
+#Выполните команду summary() на полном наборе данных. Можно ли по результату выполнения сказать сколько строк в датафрейме? *ДА, МОЖНО, ПОДСЧИТАВ КОЛИЧЕСТВО АВТОМОБИЛЕЙ* Если да, напишите сколько: 93. Если нет, то приведите другой способ.
+summary(Cars93)
+#Другой способ
+nrow(Cars93)
+#Найдите среднюю цену машин с задним приводом.
+mean(subset(Cars93$Price, Cars93$DriveTrain=="Rear"))
+#Найдите минимальное число лошадиных сил автомобиля для 7 пассажиров. 
+min(subset(Cars93$Horsepower, Cars93$Passengers=="7"))
+#Для 6 пассажиров.
+min(subset(Cars93$Horsepower, Cars93$Passengers=="6"))
+#Найдите машины с максимальны: 
+miles<-c(Cars93$MPG.highway*Cars93$Rev.per.mile);
+Cars93$Make[which(miles==max(miles))]
+#минимальным:
+Cars93$Make[which(miles==min(miles))]
+#и средним(медианой) расстоянием:
+Cars93$Make[which(miles==median(miles))]
+#которая машина может проехать по трассе. Вам понадобятся 2 колонки, чтобы рассчитать расстояние. Какие? MPG.highway и Rev.per.mile
+```
+
+```{r}
+factory.run <- function (o.cars=1, o.trucks=1) {
+  factory <- matrix(c(40,1,60,3),nrow=2, dimnames=list(c("трудодни","сталь"),c("автомобили","грузовики")))
+  warehouse <- c(1600,70) #Доступно материалов на складе
+  names(warehouse) <- rownames(factory)
+  reserve <- c(8,1)
+  names(reserve) <- rownames(factory)
+  output <- c(o.cars, o.trucks)
+  names(output) <- colnames(factory)
+  
+  steps <- 0 # Счётчик числа шагов цикла
+  repeat {
+    steps <- steps + 1
+    needed <- factory %*% output # Подсчитаем ресурсы, которые нам нужны для производства требуемого кол-ва машин
+    #message(steps)
+    #print(needed)
+    # Если ресурсов достаточно и остаток меньше или равен резерву, то мы произвели максимум возможного.
+    # Нужно прекращать
+    if (all(needed <= warehouse) && all((warehouse - needed) <= reserve)) {
+      break()
+    }
+    # Если заявка слишком большая и ресурсов недостаточно, уменьшим её на 10%
+    if (all(needed > warehouse)) {
+      output <- output * 0.9
+      next()
+    }
+    # Если всё наоброт, то увеличим на 10%
+    if (all(needed < warehouse)) {
+      output <- output * 1.1
+      next()
+    }
+    # Если мы потребили одного ресурса слишком много, а другого недостаточно,
+    # то увеличим план на случайную величину
+    output <- output * (1+runif(length(output),min=-0.1,max=0.1))
+  }
+  
+  return(output)
+}
+#Выполните код и запустите эту функцию factory.run().
+factory.run()
+
+#С каким входными значениями функция вызвана? o.cars=1, o.trucks=1
+#Какой получился результат? 
+#автомобили  грузовики 
+#  10.21897   19.79922 
+
+#Повторите вызов 4 раза. Полученные ответы отличаются от полученных ранее? ОТЛИЧАЮТСЯ Если да, почему? Потому что в функции имеется генератор случайной величины.
+
+#В приведённом коде, переменные steps и output находятся внутри алгоритма. Измените функцию так, чтобы она возвращала число шагов и произведённое количество машин.
+factory.run.new <- function (o.cars=1, o.trucks=1) {
+ factory <- matrix(c(40,1,60,3),nrow=2, dimnames=list(c("workday","steel"),c("car","truck")))
+  warehouse <- c(1600,70) #Доступно материалов на складе
+  names(warehouse) <- rownames(factory)
+  reserve <- c(8,1)
+  names(reserve) <- rownames(factory)
+  output <- c(o.cars, o.trucks)
+  names(output) <- colnames(factory)
+  
+  steps <- 0 # Счётчик числа шагов цикла
+  repeat {
+    steps <- steps + 1
+    names(steps) <- "steps";
+    needed <- factory %*% output # Подсчитаем ресурсы, которые нам нужны для производства требуемого кол-ва машин
+    # Если ресурсов достаточно и остаток меньше или равен резерву, то мы произвели максимум возможного.
+    # Нужно прекращать
+    if (all(needed <= warehouse) && all((warehouse - needed) <= reserve)) {
+      break()
+    }
+    # Если заявка слишком большая и ресурсов недостаточно, уменьшим её на 10%
+    if (all(needed > warehouse)) {
+      output <- output * 0.9
+      next()
+    }
+    # Если всё наоброт, то увеличим на 10%
+    if (all(needed < warehouse)) {
+      output <- output * 1.1
+      next()
+    }
+    # Если мы потребили одного ресурса слишком много, а другого недостаточно,
+    # то увеличим план на случайную величину
+    output <- output * (1+runif(length(output),min=-0.1,max=0.1))
+  }
+  
+  return(list(steps,needed,output)) 
+}
+factory.run.new()
+#Установите план равный тридцати автомобилям и 20 грузовикам и выполните функцию.
+factory.run.new(30,20)
+#Какой получили результат?
+#Каким получился итоговый запрос ресурсов (переменная needed)
+#Как много итераций пришлось пройти, чтобы получить ответ (переменная steps)?
+#Для подсчёта можно пользоваться функциями печати (print, message) или вернуть результат из функции.
+
+```
+
